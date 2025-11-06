@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Prevent zooming on mobile for consistent layout -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Share Rate Predictor</title>
 <style>
 :root {
@@ -15,44 +16,44 @@
   --shadow: 0 4px 18px rgba(0,0,0,0.06);
   --danger: #ef4444;
   --muted: #9ca3af;
-  --success: #16a34a;
 }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 24px;
-  transition: background 0.3s ease;
+  min-height: 100vh;
+  padding: 20px;
+  overflow-x: hidden;
 }
 .app {
   background: var(--card);
   box-shadow: var(--shadow);
   border-radius: 16px;
-  max-width: 900px;
   width: 100%;
-  padding: 28px;
-  transition: all 0.3s ease;
+  max-width: 850px;
+  padding: 24px 28px;
 }
 h1 {
   text-align: center;
-  margin-top: 0;
+  margin: 0 0 16px;
   color: var(--accent);
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
   font-weight: 700;
+  letter-spacing: 0.5px;
 }
 label {
   display: block;
   font-weight: 600;
   margin-bottom: 4px;
 }
-textarea, input, button {
+textarea, input {
   font-family: inherit;
-  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  font-size: 1rem;
 }
 textarea {
   width: 100%;
@@ -61,48 +62,47 @@ textarea {
   border-radius: 10px;
   border: 1px solid var(--border);
   resize: vertical;
-  transition: border 0.2s ease;
+  transition: border-color 0.2s;
 }
 textarea:focus, input:focus {
-  outline: none;
   border-color: var(--accent-light);
+  outline: none;
 }
 .controls {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 .control {
-  flex: 1 1 180px;
+  flex: 1 1 200px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
 }
 input[type="number"], input[type="text"] {
   width: 100%;
   padding: 8px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  transition: border 0.2s ease;
+  transition: border-color 0.2s;
 }
 button {
   border: none;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
   background: var(--accent);
   color: white;
+  transition: background 0.25s;
+  font-size: 1rem;
 }
 button:hover { background: var(--accent-light); }
 button.off {
   background: var(--muted);
 }
 .results {
-  margin-top: 24px;
-  transition: opacity 0.3s ease;
+  margin-top: 22px;
 }
 .avg-box {
   background: #f8fafc;
@@ -111,7 +111,6 @@ button.off {
   border-radius: 8px;
   margin-top: 8px;
   font-weight: 600;
-  color: #111;
 }
 table {
   border-collapse: collapse;
@@ -119,7 +118,6 @@ table {
   margin-top: 14px;
   border-radius: 10px;
   overflow: hidden;
-  font-size: clamp(0.75rem, 2vw, 0.95rem);
 }
 th, td {
   border: 1px solid #edf2f7;
@@ -133,7 +131,6 @@ th {
 }
 canvas {
   width: 100%;
-  height: auto;
   aspect-ratio: 16/9;
   margin-top: 20px;
   background: #fff;
@@ -143,12 +140,11 @@ canvas {
 .warning {
   color: var(--danger);
   margin-top: 10px;
-  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  font-size: 0.9rem;
 }
 @media (max-width: 600px) {
-  body { padding: 16px; }
-  .controls { flex-direction: column; }
-  button { width: 100%; }
+  body { padding: 10px; }
+  .app { padding: 18px; }
 }
 </style>
 </head>
@@ -167,8 +163,7 @@ canvas {
       <label for="decimals">Decimal Precision:</label>
       <input id="decimals" type="number" min="0" max="12" />
     </div>
-    <div class="control">
-      <label>Graph</label>
+    <div class="control" style="align-self: end;">
       <button id="toggleGraph">Hide Graph</button>
     </div>
   </div>
@@ -186,7 +181,7 @@ const defaults = {
   decimals: 2
 };
 
-// Load saved settings
+// Load saved data
 function loadSaved() {
   document.getElementById('data').value = localStorage.getItem('ma_data') || defaults.data;
   document.getElementById('nValues').value = localStorage.getItem('ma_nValues') || defaults.nValues;
@@ -195,6 +190,7 @@ function loadSaved() {
   updateGraphButton();
 }
 
+// Save user data
 function saveData() {
   localStorage.setItem('ma_data', document.getElementById('data').value);
   localStorage.setItem('ma_nValues', document.getElementById('nValues').value);
@@ -202,6 +198,7 @@ function saveData() {
   localStorage.setItem('ma_graphVisible', graphVisible);
 }
 
+// Helper functions
 function updateGraphButton() {
   const btn = document.getElementById('toggleGraph');
   btn.textContent = graphVisible ? "Hide Graph" : "Show Graph";
@@ -240,6 +237,7 @@ function round(num, d) {
   return Math.round((num + Number.EPSILON) * f) / f;
 }
 
+// Draw chart
 function drawChart(canvas, values, maSets, nValues) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
@@ -254,14 +252,12 @@ function drawChart(canvas, values, maSets, nValues) {
   const x = i => margin.l + (i/(values.length-1))*pw;
   const y = v => margin.t + (1-(v-ymin)/(ymax-ymin))*ph;
 
-  // Grid
   ctx.strokeStyle="#f1f5f9"; ctx.lineWidth=1;
   for(let i=0;i<=5;i++){
     const gy=margin.t+(i/5)*ph;
     ctx.beginPath(); ctx.moveTo(margin.l,gy); ctx.lineTo(margin.l+pw,gy); ctx.stroke();
   }
 
-  // Original
   ctx.strokeStyle="#2563eb"; ctx.lineWidth=2;
   ctx.beginPath();
   values.forEach((v,i)=>{ if(i===0)ctx.moveTo(x(i),y(v)); else ctx.lineTo(x(i),y(v)); });
@@ -278,7 +274,7 @@ function drawChart(canvas, values, maSets, nValues) {
     ctx.fillStyle = colors[idx % colors.length];
     ctx.fillRect(margin.l + idx*100, 8, 12, 12);
     ctx.fillStyle = "#111";
-    ctx.fillText(`n=${nValues[idx]}`, margin.l + 18 + idx*100, 18);
+    ctx.fillText(`n=${nValues[idx]}`, margin.l + 20 + idx*100, 18);
   });
 }
 
