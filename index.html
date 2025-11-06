@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<!-- Prevent zooming on mobile for consistent layout -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Share Rate Predictor</title>
 <style>
@@ -35,16 +34,15 @@ body {
   box-shadow: var(--shadow);
   border-radius: 16px;
   width: 100%;
-  max-width: 850px;
+  max-width: 880px;
   padding: 24px 28px;
 }
 h1 {
   text-align: center;
-  margin: 0 0 16px;
+  margin: 0 0 18px;
   color: var(--accent);
   font-size: clamp(1.5rem, 2.5vw, 2rem);
   font-weight: 700;
-  letter-spacing: 0.5px;
 }
 label {
   display: block;
@@ -173,15 +171,12 @@ canvas {
 
 <script>
 let graphVisible = true;
-
-// Default values
 const defaults = {
   data: "100 102 101 105 110 108 107 111 115 117",
   nValues: "3 5",
   decimals: 2
 };
 
-// Load saved data
 function loadSaved() {
   document.getElementById('data').value = localStorage.getItem('ma_data') || defaults.data;
   document.getElementById('nValues').value = localStorage.getItem('ma_nValues') || defaults.nValues;
@@ -189,22 +184,17 @@ function loadSaved() {
   graphVisible = localStorage.getItem('ma_graphVisible') !== "false";
   updateGraphButton();
 }
-
-// Save user data
 function saveData() {
   localStorage.setItem('ma_data', document.getElementById('data').value);
   localStorage.setItem('ma_nValues', document.getElementById('nValues').value);
   localStorage.setItem('ma_decimals', document.getElementById('decimals').value);
   localStorage.setItem('ma_graphVisible', graphVisible);
 }
-
-// Helper functions
 function updateGraphButton() {
   const btn = document.getElementById('toggleGraph');
   btn.textContent = graphVisible ? "Hide Graph" : "Show Graph";
   btn.classList.toggle('off', !graphVisible);
 }
-
 function parseNumbers(text) {
   const parts = text.trim().split(/[\s,]+/).filter(Boolean);
   const nums = [], bad = [];
@@ -215,7 +205,6 @@ function parseNumbers(text) {
   }
   return { nums, bad };
 }
-
 function movingAverage(values, n) {
   const out = Array(values.length).fill(null);
   let sum = 0;
@@ -226,18 +215,16 @@ function movingAverage(values, n) {
   }
   return out;
 }
-
 function average(arr) {
   const valid = arr.filter(v => v != null && Number.isFinite(v));
   return valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : null;
 }
-
 function round(num, d) {
   const f = Math.pow(10, d);
   return Math.round((num + Number.EPSILON) * f) / f;
 }
 
-// Draw chart
+// draw chart with axis & labels
 function drawChart(canvas, values, maSets, nValues) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
@@ -247,16 +234,32 @@ function drawChart(canvas, values, maSets, nValues) {
   const min = Math.min(...all), max = Math.max(...all);
   const pad = (max - min) * 0.1 || 1;
   const ymin = min - pad, ymax = max + pad;
-  const margin = {l:40, r:10, t:20, b:30};
+  const margin = {l:50, r:20, t:30, b:40};
   const pw = w - margin.l - margin.r, ph = h - margin.t - margin.b;
   const x = i => margin.l + (i/(values.length-1))*pw;
   const y = v => margin.t + (1-(v-ymin)/(ymax-ymin))*ph;
 
-  ctx.strokeStyle="#f1f5f9"; ctx.lineWidth=1;
+  ctx.strokeStyle="#e5e7eb"; ctx.lineWidth=1;
   for(let i=0;i<=5;i++){
     const gy=margin.t+(i/5)*ph;
     ctx.beginPath(); ctx.moveTo(margin.l,gy); ctx.lineTo(margin.l+pw,gy); ctx.stroke();
+    const labelVal = round(ymax - (i/5)*(ymax - ymin),2);
+    ctx.fillStyle="#6b7280"; ctx.font="12px sans-serif";
+    ctx.fillText(labelVal, 5, gy+4);
   }
+
+  ctx.strokeStyle="#d1d5db"; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(margin.l,margin.t); ctx.lineTo(margin.l,margin.t+ph); ctx.lineTo(margin.l+pw,margin.t+ph); ctx.stroke();
+
+  ctx.fillStyle="#6b7280";
+  ctx.font="13px sans-serif";
+  ctx.fillText("Days", w/2 - 15, h - 10);
+  ctx.save();
+  ctx.translate(15, h/2 + 30);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText("Rate", 0, 0);
+  ctx.restore();
 
   ctx.strokeStyle="#2563eb"; ctx.lineWidth=2;
   ctx.beginPath();
@@ -271,10 +274,17 @@ function drawChart(canvas, values, maSets, nValues) {
     maSet.forEach((v,i)=>{ if(v==null)return; if(i===0)ctx.moveTo(x(i),y(v)); else ctx.lineTo(x(i),y(v)); });
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = colors[idx % colors.length];
-    ctx.fillRect(margin.l + idx*100, 8, 12, 12);
-    ctx.fillStyle = "#111";
-    ctx.fillText(`n=${nValues[idx]}`, margin.l + 20 + idx*100, 18);
+  });
+
+  const legendX = margin.l;
+  let legendY = margin.t - 10;
+  ctx.font="13px sans-serif";
+  ctx.textBaseline="middle";
+  nValues.forEach((n, i)=>{
+    ctx.fillStyle=colors[i % colors.length];
+    ctx.fillRect(legendX + i*100, legendY, 12, 12);
+    ctx.fillStyle="#111";
+    ctx.fillText(`n=${n}`, legendX + i*100 + 18, legendY + 6);
   });
 }
 
@@ -331,20 +341,17 @@ function computeAndRender() {
   saveData();
 }
 
-// Live updates
 ['input','change'].forEach(ev=>{
   document.getElementById('data').addEventListener(ev, computeAndRender);
   document.getElementById('nValues').addEventListener(ev, computeAndRender);
   document.getElementById('decimals').addEventListener(ev, computeAndRender);
 });
-
 document.getElementById('toggleGraph').onclick = () => {
   graphVisible = !graphVisible;
   updateGraphButton();
   computeAndRender();
 };
 
-// Initialize
 loadSaved();
 computeAndRender();
 </script>
