@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Share Rate Predictor</title>
+<style>
+:root {
+  --bg: #f4f6fb;
+  --card: #fff;
+  --accent: #2563eb;
+  --accent-light: #3b82f6;
+  --text: #1f2937;
+  --border: #e5e7eb;
+  --shadow: 0 4px 18px rgba(0,0,0,0.06);
+  --danger: #ef4444;
+  --muted: #9ca3af;
+  --success: #16a34a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px;
+  transition: background 0.3s ease;
+}
+.app {
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: 16px;
+  max-width: 900px;
+  width: 100%;
+  padding: 28px;
+  transition: all 0.3s ease;
+}
+h1 {
+  text-align: center;
+  margin-top: 0;
+  color: var(--accent);
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 700;
+}
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+textarea, input, button {
+  font-family: inherit;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+}
+textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  resize: vertical;
+  transition: border 0.2s ease;
+}
+textarea:focus, input:focus {
+  outline: none;
+  border-color: var(--accent-light);
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 16px;
+}
+.control {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+input[type="number"], input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: border 0.2s ease;
+}
+button {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: var(--accent);
+  color: white;
+}
+button:hover { background: var(--accent-light); }
+button.off {
+  background: var(--muted);
+}
+.results {
+  margin-top: 24px;
+  transition: opacity 0.3s ease;
+}
+.avg-box {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-weight: 600;
+  color: #111;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: clamp(0.75rem, 2vw, 0.95rem);
+}
+th, td {
+  border: 1px solid #edf2f7;
+  text-align: right;
+  padding: 6px 8px;
+  font-family: monospace;
+}
+th {
+  background: #f9fafb;
+  text-align: left;
+}
+canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+}
+.warning {
+  color: var(--danger);
+  margin-top: 10px;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+}
+@media (max-width: 600px) {
+  body { padding: 16px; }
+  .controls { flex-direction: column; }
+  button { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Share Rate Predictor <br>(it works if you belive, fun until accurate)</h1>
+  <label for="data">Enter past share rates (space or newline separated for days rate):</label>
+  <textarea id="data"></textarea>
+
+  <div class="controls">
+    <div class="control">
+      <label for="nValues">Prediction Windows (n, space separated):</label>
+      <input id="nValues" type="text" />
+    </div>
+    <div class="control">
+      <label for="decimals">Decimal Precision:</label>
+      <input id="decimals" type="number" min="0" max="12" />
+    </div>
+    <div class="control">
+      <label>Graph</label>
+      <button id="toggleGraph">Hide Graph</button>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+let graphVisible = true;
+
+// Default values
+const defaults = {
+  data: "100 102 101 105 110 108 107 111 115 117",
+  nValues: "3 5",
+  decimals: 2
+};
+
+// Load saved settings
+function loadSaved() {
+  document.getElementById('data').value = localStorage.getItem('ma_data') || defaults.data;
+  document.getElementById('nValues').value = localStorage.getItem('ma_nValues') || defaults.nValues;
+  document.getElementById('decimals').value = localStorage.getItem('ma_decimals') || defaults.decimals;
+  graphVisible = localStorage.getItem('ma_graphVisible') !== "false";
+  updateGraphButton();
+}
+
+function saveData() {
+  localStorage.setItem('ma_data', document.getElementById('data').value);
+  localStorage.setItem('ma_nValues', document.getElementById('nValues').value);
+  localStorage.setItem('ma_decimals', document.getElementById('decimals').value);
+  localStorage.setItem('ma_graphVisible', graphVisible);
+}
+
+function updateGraphButton() {
+  const btn = document.getElementById('toggleGraph');
+  btn.textContent = graphVisible ? "Hide Graph" : "Show Graph";
+  btn.classList.toggle('off', !graphVisible);
+}
+
+function parseNumbers(text) {
+  const parts = text.trim().split(/[\s,]+/).filter(Boolean);
+  const nums = [], bad = [];
+  for (const p of parts) {
+    const v = Number(p);
+    if (Number.isFinite(v)) nums.push(v);
+    else bad.push(p);
+  }
+  return { nums, bad };
+}
+
+function movingAverage(values, n) {
+  const out = Array(values.length).fill(null);
+  let sum = 0;
+  for (let i = 0; i < values.length; i++) {
+    sum += values[i];
+    if (i >= n) sum -= values[i - n];
+    if (i >= n - 1) out[i] = sum / n;
+  }
+  return out;
+}
+
+function average(arr) {
+  const valid = arr.filter(v => v != null && Number.isFinite(v));
+  return valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : null;
+}
+
+function round(num, d) {
+  const f = Math.pow(10, d);
+  return Math.round((num + Number.EPSILON) * f) / f;
+}
+
+function drawChart(canvas, values, maSets, nValues) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+
+  const all = [...values, ...maSets.flat().filter(v=>v!=null)];
+  const min = Math.min(...all), max = Math.max(...all);
+  const pad = (max - min) * 0.1 || 1;
+  const ymin = min - pad, ymax = max + pad;
+  const margin = {l:40, r:10, t:20, b:30};
+  const pw = w - margin.l - margin.r, ph = h - margin.t - margin.b;
+  const x = i => margin.l + (i/(values.length-1))*pw;
+  const y = v => margin.t + (1-(v-ymin)/(ymax-ymin))*ph;
+
+  // Grid
+  ctx.strokeStyle="#f1f5f9"; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const gy=margin.t+(i/5)*ph;
+    ctx.beginPath(); ctx.moveTo(margin.l,gy); ctx.lineTo(margin.l+pw,gy); ctx.stroke();
+  }
+
+  // Original
+  ctx.strokeStyle="#2563eb"; ctx.lineWidth=2;
+  ctx.beginPath();
+  values.forEach((v,i)=>{ if(i===0)ctx.moveTo(x(i),y(v)); else ctx.lineTo(x(i),y(v)); });
+  ctx.stroke();
+
+  const colors = ["#ef4444","#10b981","#f59e0b","#8b5cf6","#14b8a6","#dc2626"];
+  maSets.forEach((maSet, idx)=>{
+    ctx.strokeStyle = colors[idx % colors.length];
+    ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    maSet.forEach((v,i)=>{ if(v==null)return; if(i===0)ctx.moveTo(x(i),y(v)); else ctx.lineTo(x(i),y(v)); });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = colors[idx % colors.length];
+    ctx.fillRect(margin.l + idx*100, 8, 12, 12);
+    ctx.fillStyle = "#111";
+    ctx.fillText(`n=${nValues[idx]}`, margin.l + 18 + idx*100, 18);
+  });
+}
+
+function render(values, maSets, nValues, decimals, bad) {
+  const res = document.getElementById('results');
+  res.innerHTML = '';
+
+  if (graphVisible) {
+    const canvas = document.createElement('canvas');
+    canvas.width = res.clientWidth * 2;
+    canvas.height = res.clientWidth * 0.6;
+    canvas.style.width = "100%";
+    res.appendChild(canvas);
+    drawChart(canvas, values, maSets, nValues);
+  }
+
+  nValues.forEach((n, i)=>{
+    const ma = maSets[i];
+    const avgMA = average(ma);
+    const table = document.createElement('table');
+    const head = `<thead><tr><th>Index</th><th>Rate</th><th>${n}-Day Avg</th></tr></thead>`;
+    const rows = values.map((v,idx)=>{
+      const val = round(v,decimals).toFixed(decimals);
+      const mv = ma[idx]==null?'—':round(ma[idx],decimals).toFixed(decimals);
+      return `<tr><td style="text-align:left">${idx}</td><td>${val}</td><td>${mv}</td></tr>`;
+    }).join('');
+    table.innerHTML = head + `<tbody>${rows}</tbody>`;
+    const avgBox = document.createElement('div');
+    avgBox.className = 'avg-box';
+    avgBox.textContent = `Average of ${n}-day moving average: ${
+      avgMA==null?'—':round(avgMA,decimals).toFixed(decimals)
+    }`;
+    res.appendChild(table);
+    res.appendChild(avgBox);
+  });
+
+  if (bad.length) {
+    const warn = document.createElement('div');
+    warn.className = 'warning';
+    warn.textContent = 'Ignored invalid entries: ' + bad.join(' ');
+    res.appendChild(warn);
+  }
+}
+
+function computeAndRender() {
+  const { nums, bad } = parseNumbers(document.getElementById('data').value);
+  const nText = document.getElementById('nValues').value;
+  const decimals = Math.min(12, Math.max(0, Number(document.getElementById('decimals').value)));
+  if (!nums.length) { document.getElementById('results').innerHTML = ''; return; }
+  const nValues = nText.split(/[\s,]+/).map(s=>Number(s.trim())).filter(n=>Number.isInteger(n)&&n>0);
+  if (!nValues.length) { document.getElementById('results').innerHTML = ''; return; }
+  const maSets = nValues.map(n=>movingAverage(nums,n));
+  render(nums, maSets, nValues, decimals, bad);
+  saveData();
+}
+
+// Live updates
+['input','change'].forEach(ev=>{
+  document.getElementById('data').addEventListener(ev, computeAndRender);
+  document.getElementById('nValues').addEventListener(ev, computeAndRender);
+  document.getElementById('decimals').addEventListener(ev, computeAndRender);
+});
+
+document.getElementById('toggleGraph').onclick = () => {
+  graphVisible = !graphVisible;
+  updateGraphButton();
+  computeAndRender();
+};
+
+// Initialize
+loadSaved();
+computeAndRender();
+</script>
+</body>
+</html>
