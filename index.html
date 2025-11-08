@@ -36,6 +36,7 @@ body {
   width: 100%;
   max-width: 880px;
   padding: 24px 28px;
+  position: relative;
 }
 h1 {
   text-align: center;
@@ -92,16 +93,13 @@ button {
   cursor: pointer;
   background: var(--accent);
   color: white;
-  transition: background 0.25s;
+  transition: background 0.25s, transform 0.1s;
   font-size: 1rem;
 }
 button:hover { background: var(--accent-light); }
-button.off {
-  background: var(--muted);
-}
-.results {
-  margin-top: 22px;
-}
+button:active { transform: scale(0.97); }
+button.off { background: var(--muted); }
+.results { margin-top: 22px; }
 .avg-box {
   background: #f8fafc;
   border: 1px solid #e5e7eb;
@@ -123,10 +121,7 @@ th, td {
   padding: 6px 8px;
   font-family: monospace;
 }
-th {
-  background: #f9fafb;
-  text-align: left;
-}
+th { background: #f9fafb; text-align: left; }
 canvas {
   width: 100%;
   aspect-ratio: 16/9;
@@ -140,6 +135,53 @@ canvas {
   margin-top: 10px;
   font-size: 0.9rem;
 }
+
+/* --- Popup Styles --- */
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+.popup {
+  background: var(--card);
+  max-width: 520px;
+  width: 90%;
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+.popup h2 {
+  margin-top: 0;
+  color: var(--accent);
+}
+.popup button.close {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 28px; height: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.popup p {
+  line-height: 1.5;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 @media (max-width: 600px) {
   body { padding: 10px; }
   .app { padding: 18px; }
@@ -148,7 +190,7 @@ canvas {
 </head>
 <body>
 <div class="app">
-  <h1>Share Rate Predictor <br>(it works if you belive, fun until accurate)</h1>
+  <h1>Share Rate Predictor <br>(it works if you believe, fun until accurate)</h1>
   <label for="data">Enter past share rates (space or newline separated for days rate):</label>
   <textarea id="data"></textarea>
 
@@ -161,26 +203,39 @@ canvas {
       <label for="decimals">Decimal Precision:</label>
       <input id="decimals" type="number" min="0" max="12" />
     </div>
-    <div class="control" style="align-self: end;">
+    <div class="control" style="align-self:end; display:flex; gap:10px;">
       <button id="toggleGraph">Hide Graph</button>
+      <button id="clearAll" style="background: var(--danger);">Clear All</button>
+      <button id="showHelp" style="background: var(--accent-light);">Help</button>
     </div>
   </div>
 
   <div class="results" id="results"></div>
 </div>
 
+<!-- Popup -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup">
+    <button class="close" id="closePopup">&times;</button>
+    <h2>📘 How to Use</h2>
+    <p><strong>1️⃣ Enter your past share rates:</strong> Type space or newline-separated values, e.g. <code>100 102 105 107</code>.</p>
+    <p><strong>2️⃣ Set moving average windows:</strong> In “Prediction Windows (n)” enter numbers like <code>3 5 10</code> to calculate multiple moving averages.</p>
+    <p><strong>3️⃣ Choose decimal precision:</strong> Set how many digits after the decimal point are shown (e.g. 2).</p>
+    <p><strong>4️⃣ Graph:</strong> The solid blue line shows actual rates, and dashed colored lines represent moving averages for each window (n).</p>
+    <p><strong>5️⃣ Data saving:</strong> All your inputs and settings are saved automatically in your browser.</p>
+    <p><strong>6️⃣ Clear All:</strong> Click to wipe everything clean and start fresh.</p>
+    <p><strong>7️⃣ Toggle Graph:</strong> Show or hide the chart anytime.</p>
+    <p style="margin-top:12px; color: var(--muted);"><em>Note: This tool is for learning and fun — not financial advice.</em></p>
+  </div>
+</div>
+
 <script>
 let graphVisible = true;
-const defaults = {
-  data: "100 102 101 105 110 108 107 111 115 117",
-  nValues: "3 5",
-  decimals: 2
-};
 
 function loadSaved() {
-  document.getElementById('data').value = localStorage.getItem('ma_data') || defaults.data;
-  document.getElementById('nValues').value = localStorage.getItem('ma_nValues') || defaults.nValues;
-  document.getElementById('decimals').value = localStorage.getItem('ma_decimals') || defaults.decimals;
+  document.getElementById('data').value = localStorage.getItem('ma_data') || "";
+  document.getElementById('nValues').value = localStorage.getItem('ma_nValues') || "";
+  document.getElementById('decimals').value = localStorage.getItem('ma_decimals') || 2;
   graphVisible = localStorage.getItem('ma_graphVisible') !== "false";
   updateGraphButton();
 }
@@ -224,7 +279,6 @@ function round(num, d) {
   return Math.round((num + Number.EPSILON) * f) / f;
 }
 
-// draw chart with axis & labels
 function drawChart(canvas, values, maSets, nValues) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
@@ -292,7 +346,7 @@ function render(values, maSets, nValues, decimals, bad) {
   const res = document.getElementById('results');
   res.innerHTML = '';
 
-  if (graphVisible) {
+  if (graphVisible && values.length) {
     const canvas = document.createElement('canvas');
     canvas.width = res.clientWidth * 2;
     canvas.height = res.clientWidth * 0.6;
@@ -332,7 +386,7 @@ function render(values, maSets, nValues, decimals, bad) {
 function computeAndRender() {
   const { nums, bad } = parseNumbers(document.getElementById('data').value);
   const nText = document.getElementById('nValues').value;
-  const decimals = Math.min(12, Math.max(0, Number(document.getElementById('decimals').value)));
+  const decimals = Math.min(12, Math.max(0, Number(document.getElementById('decimals').value || 0)));
   if (!nums.length) { document.getElementById('results').innerHTML = ''; return; }
   const nValues = nText.split(/[\s,]+/).map(s=>Number(s.trim())).filter(n=>Number.isInteger(n)&&n>0);
   if (!nValues.length) { document.getElementById('results').innerHTML = ''; return; }
@@ -341,6 +395,7 @@ function computeAndRender() {
   saveData();
 }
 
+// Events
 ['input','change'].forEach(ev=>{
   document.getElementById('data').addEventListener(ev, computeAndRender);
   document.getElementById('nValues').addEventListener(ev, computeAndRender);
@@ -351,6 +406,22 @@ document.getElementById('toggleGraph').onclick = () => {
   updateGraphButton();
   computeAndRender();
 };
+document.getElementById('clearAll').onclick = () => {
+  if (!confirm("Clear all fields and data?")) return;
+  localStorage.clear();
+  document.getElementById('data').value = "";
+  document.getElementById('nValues').value = "";
+  document.getElementById('decimals').value = "";
+  graphVisible = false;
+  updateGraphButton();
+  document.getElementById('results').innerHTML = "";
+};
+
+// Popup
+const popupOverlay = document.getElementById('popupOverlay');
+document.getElementById('showHelp').onclick = () => popupOverlay.style.display = 'flex';
+document.getElementById('closePopup').onclick = () => popupOverlay.style.display = 'none';
+popupOverlay.onclick = e => { if (e.target === popupOverlay) popupOverlay.style.display = 'none'; };
 
 loadSaved();
 computeAndRender();
