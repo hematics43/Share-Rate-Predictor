@@ -2,101 +2,82 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-<title>Share Rate Predictor — Theme Button</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Share Rate Predictor — Tabs</title>
 <style>
-/* --- Base CSS variables (will be overwritten by JS themes) --- */
 :root{
-  --bg: #f4f6fb;
-  --card: #fff;
-  --accent-h: 210;
-  --accent-s: 65%;
-  --accent-l: 50%;
-  --accent: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
-  --accent-2: hsl(var(--accent-h) calc(var(--accent-s) - 8%) calc(var(--accent-l) + 6%));
-  --text: #111827;
-  --border: #e5e7eb;
-  --shadow: 0 6px 22px rgba(0,0,0,0.06);
-  --danger: #ef4444;
-  --muted: #9ca3af;
-  --card-shadow: rgba(15,23,42,0.06);
+  --bg:#f4f6fb; --card:#fff; --accent:#2563eb; --accent-2:#3b82f6; --text:#111827;
+  --border:#e5e7eb; --shadow: 0 6px 22px rgba(0,0,0,0.06); --danger:#ef4444; --muted:#9ca3af;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
 body{
   margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; background:var(--bg);
   color:var(--text); display:flex; justify-content:center; padding:18px; min-height:100vh;
-  transition: background 320ms ease, color 320ms ease;
 }
 .container{
-  width:100%; max-width:980px; background:var(--card); border-radius:14px;
-  box-shadow:0 10px 30px var(--card-shadow); padding:18px; overflow:hidden;
-  transition: background 320ms ease, box-shadow 320ms ease;
+  width:100%; max-width:980px; background:var(--card); border-radius:14px; box-shadow:var(--shadow);
+  padding:18px; overflow:hidden;
 }
-.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.title{ font-size:1.4rem; color:var(--accent); font-weight:700; margin:0; transition: color 320ms ease; }
-.tabbar{ display:flex; gap:8px; align-items:center; overflow:auto; padding:6px; border-radius:10px; background:linear-gradient(180deg,#fff,#fbfdff); box-shadow:inset 0 -1px 0 rgba(0,0,0,0.02); }
-.tab{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;cursor:pointer;background:transparent;color:var(--text);border:1px solid transparent;white-space:nowrap;transition:background 220ms, border-color 220ms;}
-.tab.active{ background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.00)); border-color: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow:0 1px 0 rgba(0,0,0,0.03); }
-.tab .close{ background:transparent; border:none; color:var(--muted); cursor:pointer; font-weight:700; }
-.addBtn{ padding:8px 10px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer; font-weight:700; transition: background 220ms; }
-.controls{ display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
-.leftCol{ flex:1 1 320px; min-width:260px; }
-.rightCol{ flex:1 1 540px; min-width:300px; }
-.field{ display:flex; flex-direction:column; gap:6px; margin-bottom:6px; }
-textarea, input[type="text"], input[type="number"]{ width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:1rem; background:transparent; color:var(--text); transition: border-color 180ms; }
-textarea:focus, input:focus{ border-color: var(--accent-2); outline:none; box-shadow:0 4px 12px rgba(0,0,0,0.04); }
-.tx{ min-height:110px; resize:vertical; }
-.btnRow{ display:flex; gap:8px; align-items:center; }
-.btn{ padding:9px 12px; border-radius:8px; border:none; cursor:pointer; background:var(--accent); color:white; font-weight:700; transition: background 220ms, transform 80ms; }
-.btn.muted{ background:var(--muted); }
-.btn.danger{ background:var(--danger); }
-.results{ margin-top:14px; transition: opacity 160ms ease; }
-.avg-box{ background:color-mix(in srgb, var(--accent) 8%, #fff); border:1px solid color-mix(in srgb, var(--accent) 12%, #eef2ff); padding:10px; border-radius:8px; font-weight:700; margin-top:8px; color:var(--text); }
-.table{ width:100%; border-collapse:collapse; margin-top:12px; font-family:monospace; }
-.table th, .table td{ border:1px solid color-mix(in srgb, var(--accent) 6%, #eef2f7); padding:6px 8px; text-align:right; }
-.table th{ background: color-mix(in srgb, var(--accent) 4%, #fbfdff); text-align:left; }
-canvas{ width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; background:var(--card); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 3%, #eef2f7); }
-
-/* Floating theme button */
-.theme-fab{
-  position:fixed; right:18px; bottom:18px; width:56px; height:56px; border-radius:50%;
-  border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.18); transition: transform 180ms, box-shadow 180ms;
-  z-index:2000;
+.header{
+  display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;
 }
-.theme-fab:active{ transform:scale(0.96); }
-
-/* small color circle inside FAB */
-.theme-dot{ width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
-
-/* Help popup */
-.popup-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:9999; }
-.popup{ background:var(--card); width:92%; max-width:640px; border-radius:12px; padding:18px; box-shadow:var(--shadow); position:relative; color:var(--text); }
+.title { font-size:1.4rem; color:var(--accent); font-weight:700; margin:0; }
+.tabbar {
+  display:flex; gap:8px; align-items:center; overflow:auto; padding:6px; border-radius:10px;
+  background:linear-gradient(180deg,#fff,#fbfdff); box-shadow:inset 0 -1px 0 rgba(0,0,0,0.02);
+}
+.tab {
+  display:flex; gap:8px; align-items:center; padding:8px 10px; border-radius:8px; cursor:pointer;
+  background:transparent; color:var(--text); border:1px solid transparent; white-space:nowrap;
+}
+.tab.active { background:linear-gradient(90deg,#eef6ff,#f5fbff); border-color:#dbeafe; box-shadow:0 1px 0 rgba(0,0,0,0.03); }
+.tab .close { background:transparent; border:none; color:var(--muted); cursor:pointer; font-weight:700; }
+.addBtn { padding:8px 10px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer; font-weight:700; }
+.controls { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
+.leftCol { flex:1 1 320px; min-width:260px; }
+.rightCol { flex:1 1 540px; min-width:300px; }
+.field { display:flex; flex-direction:column; gap:6px; margin-bottom:6px;}
+textarea, input[type="text"], input[type="number"]{
+  width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:1rem;
+}
+.tx { min-height:110px; resize:vertical; }
+.btnRow { display:flex; gap:8px; align-items:center; }
+.btn { padding:9px 12px; border-radius:8px; border:none; cursor:pointer; background:var(--accent); color:white; font-weight:700; }
+.btn.muted { background:var(--muted); color:white; }
+.btn.danger { background:var(--danger); color:white; }
+.results { margin-top:14px; }
+.avg-box { background:#f8fafc; border:1px solid #eef2ff; padding:10px; border-radius:8px; font-weight:700; margin-top:8px; }
+.table { width:100%; border-collapse:collapse; margin-top:12px; font-family:monospace; }
+.table th, .table td { border:1px solid #eef2f7; padding:6px 8px; text-align:right; }
+.table th { background:#fbfdff; text-align:left; }
+canvas { width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; background:white; box-shadow:inset 0 0 0 1px #eef2f7; }
+.helpBtn{ background:var(--accent-2); border:none; color:white; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:700;}
+.popup-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:9999;}
+.popup{ background:white; width:92%; max-width:640px; border-radius:12px; padding:18px; box-shadow:var(--shadow); position:relative;}
 .popup h2{ color:var(--accent); margin-top:0; }
-.popup .close{ position:absolute; right:12px; top:12px; background:var(--danger); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-weight:700; }
-
-/* small helpers */
+.popup .close{ position:absolute; right:12px; top:12px; background:var(--danger); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-weight:700;}
 .small{ font-size:0.95rem; color:var(--muted); }
+.tabs-wrap{ display:flex; align-items:center; gap:12px; width:100%; }
+.tab-input { min-width:160px; padding:6px 8px; border-radius:8px; border:1px solid var(--border); }
+.rename-input { padding:4px 6px; border-radius:6px; border:1px solid var(--border); }
 @media(max-width:720px){
   .controls{ flex-direction:column; }
-  .leftCol,.rightCol{ min-width:100%; }
+  .leftCol, .rightCol{ min-width:100%; }
 }
 </style>
 </head>
 <body>
-<div class="container" role="application" id="appContainer">
+<div class="container" role="application">
   <div class="header">
     <div style="display:flex;flex-direction:column;">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <h1 class="title">Share Rate Predictor</h1>
+      <div class="tabs-wrap">
+        <div style="margin-right:12px"><h1 class="title">Share Rate Predictor</h1></div>
         <div class="tabbar" id="tabbar" aria-label="Stock tabs"></div>
       </div>
-      <div class="small" style="margin-top:8px">Click the floating theme button (bottom-right) to cycle app themes.</div>
     </div>
 
     <div style="display:flex;gap:8px;align-items:center;">
-      <button class="btn muted" id="helpBtnTop">Help</button>
+      <button class="helpBtn" id="helpBtnTop">Help</button>
       <button class="addBtn" id="addStockBtn">+ Add Stock</button>
     </div>
   </div>
@@ -105,9 +86,8 @@ canvas{ width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; backg
     <div class="leftCol">
       <div class="field">
         <label>Stock / Share (active tab name)</label>
-        <input id="stockNameInput" type="text" placeholder="Enter or rename stock here" />
+        <input id="stockNameInput" type="text" class="tab-input" placeholder="Enter or rename stock here" />
       </div>
-
       <div class="field">
         <label>Enter past share rates (space or newline separated):</label>
         <textarea id="dataInput" class="tx" placeholder="e.g. 100 102 105 107 ..."></textarea>
@@ -118,7 +98,7 @@ canvas{ width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; backg
         <input id="nInput" type="text" placeholder="e.g. 3 5 10" />
       </div>
 
-      <div style="display:flex;gap:12px;align-items:flex-end;">
+      <div style="display:flex;gap:12px;">
         <div style="flex:1">
           <label>Decimal precision</label>
           <input id="decimalsInput" type="number" min="0" max="12" />
@@ -130,6 +110,7 @@ canvas{ width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; backg
           </div>
         </div>
       </div>
+
     </div>
 
     <div class="rightCol">
@@ -143,55 +124,67 @@ canvas{ width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; backg
   <div class="popup">
     <button class="close" id="closeHelp">&times;</button>
     <h2>How to use — Share Rate Predictor</h2>
-    <p><strong>Tabs:</strong> Each tab is a saved stock. Use <strong>+ Add Stock</strong> to add one. Click a tab to load it.</p>
+    <p><strong>Tabs:</strong> Each tab is a stock. Use <strong>+ Add Stock</strong> to add one. Click a tab to load it.</p>
     <p><strong>Rename:</strong> Edit the stock name box (above data) to rename the current tab and save automatically.</p>
     <p><strong>Share rates:</strong> Enter daily rates separated by spaces or new lines. The app calculates moving averages live.</p>
-    <p><strong>Prediction windows:</strong> Enter integers (e.g. <code>3 5 10</code>) to compute multiple MAs.</p>
-    <p><strong>Theme button:</strong> Tap the floating circular button bottom-right to cycle through 50 themes; the theme is saved globally.</p>
+    <p><strong>Prediction windows:</strong> Enter one or more integers (e.g. <code>3 5 10</code>) to compute multiple MAs.</p>
+    <p><strong>Clear All:</strong> Clears the current tab’s saved values (localStorage) and empties inputs.</p>
+    <p><strong>Delete tab:</strong> Use the small × on a tab to delete that stock and its saved data (confirmation required).</p>
     <p class="small">All data is stored locally in your browser. This is a learning/visual tool — not financial advice.</p>
   </div>
 </div>
 
-<!-- Floating theme FAB -->
-<button id="themeFab" class="theme-fab" aria-label="Change theme" title="Change theme">
-  <div id="themeDot" class="theme-dot" style="background:var(--accent)"></div>
-</button>
-
 <script>
-/* ===========================
-   Stocks / Tabs & persistence
-   =========================== */
-const STOCK_LIST_KEY = 'ma_stocks_list_v1';
-const STOCK_PREFIX = 'ma_stock_';
-let stocks = [];
+/* ---------------------------
+   Storage keys & helpers
+   --------------------------- */
+const STOCK_LIST_KEY = 'ma_stocks_list_v1'; // stores array of {id,name}
+const STOCK_PREFIX = 'ma_stock_';            // then id suffix keys: data, n, decimals, graphVisible
+let stocks = []; // array of {id,name}
 let currentId = null;
 
+/* generate unique id */
 function makeId(){ return 's_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7); }
-function k(id, field){ return `${STOCK_PREFIX}${id}::${field}`; }
-function saveStocksList(){ localStorage.setItem(STOCK_LIST_KEY, JSON.stringify(stocks)); }
-function loadStocksList(){ const raw = localStorage.getItem(STOCK_LIST_KEY); try{ stocks = raw ? JSON.parse(raw) : []; }catch(e){ stocks = []; } if(!Array.isArray(stocks)) stocks = []; }
 
-/* ensure default */
+/* key builder */
+function k(id, field){ return `${STOCK_PREFIX}${id}::${field}`; }
+
+/* save stocks list */
+function saveStocksList(){ localStorage.setItem(STOCK_LIST_KEY, JSON.stringify(stocks)); }
+
+/* load stocks list */
+function loadStocksList(){
+  const raw = localStorage.getItem(STOCK_LIST_KEY);
+  try {
+    stocks = raw ? JSON.parse(raw) : [];
+  } catch(e){ stocks = []; }
+  if(!Array.isArray(stocks)) stocks = [];
+}
+
+/* create default if none */
 function ensureDefaultStock(){
   if(stocks.length===0){
     const id = makeId();
     stocks.push({id, name:'Default'});
     saveStocksList();
-    localStorage.setItem(k(id,'data'),'100 102 101 105 110 108 107 111 115 117');
-    localStorage.setItem(k(id,'n'),'3 5');
-    localStorage.setItem(k(id,'decimals'),'2');
-    localStorage.setItem(k(id,'graph'),'true');
+    // populate default sample values
+    localStorage.setItem(k(id,'data'), '100 102 101 105 110 108 107 111 115 117');
+    localStorage.setItem(k(id,'n'), '3 5');
+    localStorage.setItem(k(id,'decimals'), '2');
+    localStorage.setItem(k(id,'graph'), 'true');
   }
 }
 
-/* Tabs UI */
+/* ---------------------------
+   UI: tabs rendering & actions
+   --------------------------- */
 const tabbar = document.getElementById('tabbar');
 const addStockBtn = document.getElementById('addStockBtn');
 const stockNameInput = document.getElementById('stockNameInput');
 
 function renderTabs(){
   tabbar.innerHTML = '';
-  stocks.forEach(s=>{
+  stocks.forEach(s => {
     const t = document.createElement('div');
     t.className = 'tab' + (s.id===currentId ? ' active' : '');
     t.dataset.id = s.id;
@@ -199,8 +192,11 @@ function renderTabs(){
     const nameSpan = document.createElement('span');
     nameSpan.textContent = s.name;
     nameSpan.style.fontWeight = '600';
+    nameSpan.style.marginRight = '6px';
     nameSpan.title = 'Click to select. Double-click to rename.';
+    // select
     nameSpan.addEventListener('click', ()=> selectStock(s.id));
+    // double-click rename: turn into input
     nameSpan.addEventListener('dblclick', ()=>{
       const input = document.createElement('input');
       input.className = 'rename-input';
@@ -210,6 +206,7 @@ function renderTabs(){
       t.replaceChild(input, nameSpan);
       input.focus();
     });
+
     t.appendChild(nameSpan);
 
     const closeBtn = document.createElement('button');
@@ -221,45 +218,59 @@ function renderTabs(){
       deleteStockPrompt(s.id);
     });
     t.appendChild(closeBtn);
+
     tabbar.appendChild(t);
   });
+
+  // Add small spacer (keeps add button aligned)
 }
 
+/* add new stock */
 addStockBtn.addEventListener('click', ()=>{
   const name = prompt('Enter new stock name (e.g. AAPL):') || '';
   const trimmed = name.trim() || ('Stock '+(stocks.length+1));
   const id = makeId();
   stocks.push({id, name: trimmed});
-  localStorage.setItem(k(id,'data'),'');
-  localStorage.setItem(k(id,'n'),'');
-  localStorage.setItem(k(id,'decimals'),'');
-  localStorage.setItem(k(id,'graph'),'true');
+  // set defaults empty so user starts fresh
+  localStorage.setItem(k(id,'data'), '');
+  localStorage.setItem(k(id,'n'), '');
+  localStorage.setItem(k(id,'decimals'), '');
+  localStorage.setItem(k(id,'graph'), 'true');
   saveStocksList();
   currentId = id;
   renderTabs();
-  loadCurrentStock();
+  loadCurrentStock(); // loads values into UI and auto-saves
 });
 
+/* delete stock after confirm */
 function deleteStockPrompt(id){
   const st = stocks.find(s=>s.id===id);
   if(!st) return;
   if(!confirm(`Delete "${st.name}" and its saved data? This cannot be undone.`)) return;
+  // remove storage keys for that id
   ['data','n','decimals','graph'].forEach(f=> localStorage.removeItem(k(id,f)));
+  // remove from stocks array
   stocks = stocks.filter(s=>s.id!==id);
   saveStocksList();
+  // pick a new current
   if(stocks.length>0) currentId = stocks[0].id;
-  else { ensureDefaultStock(); loadStocksList(); currentId = stocks[0].id; }
+  else { currentId = null; ensureDefaultStock(); loadStocksList(); currentId = stocks[0].id; }
   renderTabs();
   loadCurrentStock();
 }
+
+/* rename finishing */
 function finishRename(id, newName){
   const s = stocks.find(x=>x.id===id);
   if(!s) return;
   s.name = newName.trim() || s.name;
   saveStocksList();
   renderTabs();
+  // if renaming current, update input box
   if(id===currentId) stockNameInput.value = s.name;
 }
+
+/* select stock */
 function selectStock(id){
   if(!stocks.find(s=>s.id===id)) return;
   currentId = id;
@@ -267,20 +278,30 @@ function selectStock(id){
   loadCurrentStock();
 }
 
-/* Load / Save per-stock */
+/* ---------------------------
+   Load / Save per-stock data
+   --------------------------- */
 function loadCurrentStock(){
-  if(!currentId) currentId = stocks[0] && stocks[0].id;
+  if(!currentId){
+    const def = stocks[0];
+    currentId = def && def.id;
+  }
   const id = currentId;
-  document.getElementById('dataInput').value = localStorage.getItem(k(id,'data')) || '';
-  document.getElementById('nInput').value = localStorage.getItem(k(id,'n')) || '';
-  document.getElementById('decimalsInput').value = localStorage.getItem(k(id,'decimals')) || '';
+  const data = localStorage.getItem(k(id,'data')) || '';
+  const n = localStorage.getItem(k(id,'n')) || '';
+  const decimals = localStorage.getItem(k(id,'decimals'));
   const graph = localStorage.getItem(k(id,'graph'));
-  graphVisible = (graph === null) ? true : (graph !== 'false');
-  updateGraphButton();
+
+  document.getElementById('dataInput').value = data;
+  document.getElementById('nInput').value = n;
+  document.getElementById('decimalsInput').value = (decimals===null ? '' : decimals);
   const st = stocks.find(s=>s.id===id);
   stockNameInput.value = st ? st.name : '';
+  graphVisible = (graph === null) ? true : (graph !== 'false');
+  updateGraphButton();
   computeAndRender();
 }
+
 function saveCurrentStock(){
   if(!currentId) return;
   const id = currentId;
@@ -288,12 +309,13 @@ function saveCurrentStock(){
   localStorage.setItem(k(id,'n'), document.getElementById('nInput').value);
   localStorage.setItem(k(id,'decimals'), document.getElementById('decimalsInput').value);
   localStorage.setItem(k(id,'graph'), graphVisible ? 'true' : 'false');
+  // Also update tab name from input if changed
   const name = (stockNameInput.value || '').trim();
   const s = stocks.find(x=>x.id===id);
   if(s && name && s.name !== name){ s.name = name; saveStocksList(); renderTabs(); }
 }
 
-/* Clear All for current stock */
+/* Clear All for current stock (empties fields and storage) */
 document.getElementById('clearBtn').addEventListener('click', ()=>{
   if(!currentId) return;
   if(!confirm('Clear all data for this stock? This empties inputs and removes saved values.')) return;
@@ -306,9 +328,9 @@ document.getElementById('clearBtn').addEventListener('click', ()=>{
   document.getElementById('results').innerHTML = '';
 });
 
-/* ===========================
-   Calculation & chart rendering
-   =========================== */
+/* ---------------------------
+   Calculation & rendering
+   --------------------------- */
 let graphVisible = true;
 const resultsEl = document.getElementById('results');
 
@@ -322,72 +344,28 @@ function parseNumbers(text){
   }
   return {nums,bad};
 }
-function movingAverage(values,n){ const out = Array(values.length).fill(null); let sum=0; for(let i=0;i<values.length;i++){ sum+=values[i]; if(i>=n) sum-=values[i-n]; if(i>=n-1) out[i]=sum/n; } return out; }
-function average(arr){ const valid=arr.filter(v=>v!=null && Number.isFinite(v)); return valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : null; }
-function round(num,d){ const f=Math.pow(10,d||0); return Math.round((num+Number.EPSILON)*f)/f; }
 
-/* theme system: 50 themes defined by hue and bg lightness variant */
-const THEMES = (()=>{
-  const arr=[];
-  for(let i=0;i<50;i++){
-    const hue = Math.round(i * 360 / 50);
-    // alternate background lightness for variety
-    const bgL = (i % 3 === 0) ? 97 : ((i % 3 === 1) ? 95 : 92);
-    // accent saturation and lightness
-    const s = (i % 7 === 0) ? 72 : 65;
-    const l = (i % 5 === 0) ? 45 : 52;
-    arr.push({h: hue, s, l, bgL});
+function movingAverage(values, n){
+  const out = Array(values.length).fill(null);
+  let sum = 0;
+  for(let i=0;i<values.length;i++){
+    sum += values[i];
+    if(i>=n) sum -= values[i-n];
+    if(i>=n-1) out[i] = sum / n;
   }
-  return arr;
-})();
-
-/* apply theme by index (global) */
-const THEME_KEY = 'ma_theme_index_v1';
-function applyTheme(index){
-  const idx = Math.max(0, Math.min(THEMES.length-1, index|0));
-  const t = THEMES[idx];
-  // compute CSS vars
-  const accentVal = `hsl(${t.h} ${t.s}% ${t.l}%)`;
-  const accent2Val = `hsl(${t.h} ${Math.max(20,t.s-10)}% ${Math.min(88,t.l+10)}%)`;
-  const bgVal = `hsl(${t.h} ${Math.max(7, t.s/6)}% ${t.bgL}%)`;
-  // card color slightly lighter/darker than bg
-  const cardL = Math.max(100 - (100 - t.bgL) - 2, t.bgL - 3);
-  const cardVal = `hsl(${t.h} ${Math.max(6, t.s/7)}% ${Math.min(99, Math.max(98, cardL - 2))}%)`;
-  // text color: choose dark or light depending on bgL
-  const textVal = (t.bgL > 88) ? '#0b1220' : '#0b1220';
-  // border subtle
-  const borderVal = `hsl(${t.h} ${Math.max(6, t.s/8)}% ${Math.max(88, t.bgL - 6)}%)`;
-  // box-shadow color from accent with low alpha
-  const cardShadow = `0 10px 30px color-mix(in srgb, ${accentVal} 12%, transparent)`;
-
-  const root = document.documentElement;
-  root.style.setProperty('--accent-h', String(t.h));
-  root.style.setProperty('--accent-s', `${t.s}%`);
-  root.style.setProperty('--accent-l', `${t.l}%`);
-  root.style.setProperty('--accent', accentVal);
-  root.style.setProperty('--accent-2', accent2Val);
-  root.style.setProperty('--bg', bgVal);
-  root.style.setProperty('--card', cardVal);
-  root.style.setProperty('--text', textVal);
-  root.style.setProperty('--border', borderVal);
-  root.style.setProperty('--card-shadow', 'rgba(15,23,42,0.06)');
-  // update floating dot
-  document.getElementById('themeDot').style.background = accentVal;
-  // save selection
-  localStorage.setItem(THEME_KEY, String(idx));
-  // re-render (chart colors depend on accent)
-  computeAndRender();
+  return out;
 }
+function average(arr){ const valid = arr.filter(v=>v!=null && Number.isFinite(v)); return valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : null;}
+function round(num,d){ const f = Math.pow(10,d||0); return Math.round((num+Number.EPSILON)*f)/f; }
 
-/* draw chart — derive MA colors from accent hue */
-function r(){ return window.devicePixelRatio || 1; }
 function drawChart(canvas, values, maSets, nValues){
   const ctx = canvas.getContext('2d');
-  const DPR = r();
+  const DPR = window.devicePixelRatio || 1;
   const w = Math.max(400, Math.floor(canvas.clientWidth * DPR));
   const h = Math.floor(canvas.clientHeight * DPR);
   canvas.width = w; canvas.height = h;
   ctx.clearRect(0,0,w,h);
+
   if(values.length===0) return;
 
   const all = [...values, ...maSets.flat().filter(x=>x!=null)];
@@ -396,13 +374,12 @@ function drawChart(canvas, values, maSets, nValues){
   const ymin = min - pad, ymax = max + pad;
   const margin = {l:50*r(), r:20*r(), t:30*r(), b:40*r()};
   const pw = w - margin.l - margin.r, ph = h - margin.t - margin.b;
-  const x = i => margin.l + (i/(values.length-1 || 1)) * pw;
-  const y = v => margin.t + (1 - (v - ymin)/(ymax - ymin)) * ph;
+  const x = i => margin.l + (i/(values.length-1 || 1))*pw;
+  const y = v => margin.t + (1-(v-ymin)/(ymax-ymin))*ph;
 
-  // grid + labels
+  // grid + y labels
   ctx.strokeStyle = "#e9eef6"; ctx.lineWidth = 1*r();
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#111827';
-  ctx.font = `${12*r()}px sans-serif`;
+  ctx.fillStyle = "#6b7280"; ctx.font = `${12*r()}px sans-serif`;
   for(let i=0;i<=5;i++){
     const gy = margin.t + (i/5)*ph;
     ctx.beginPath(); ctx.moveTo(margin.l,gy); ctx.lineTo(margin.l+pw,gy); ctx.stroke();
@@ -413,46 +390,38 @@ function drawChart(canvas, values, maSets, nValues){
   // axes
   ctx.strokeStyle = "#cfd8e6"; ctx.lineWidth = 1.5*r();
   ctx.beginPath(); ctx.moveTo(margin.l,margin.t); ctx.lineTo(margin.l,margin.t+ph); ctx.lineTo(margin.l+pw,margin.t+ph); ctx.stroke();
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
-  ctx.font = `${13*r()}px sans-serif`;
+
+  // axis labels
+  ctx.fillStyle = "#6b7280"; ctx.font = `${13*r()}px sans-serif`;
   ctx.fillText("Days", (w/2)-15*r(), h - 8*r());
   ctx.save(); ctx.translate(14*r(), h/2 + 28*r()); ctx.rotate(-Math.PI/2); ctx.fillText("Rate", 0, 0); ctx.restore();
 
-  // raw color from CSS var --accent (will be hsl string)
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#2563eb';
-  ctx.strokeStyle = accent; ctx.lineWidth = 2.6*r();
+  // raw values (solid)
+  ctx.strokeStyle = "#2563eb"; ctx.lineWidth = 2.2*r();
   ctx.beginPath();
   values.forEach((v,i)=>{ const xi=x(i), yi=y(v); if(i===0) ctx.moveTo(xi,yi); else ctx.lineTo(xi,yi); });
   ctx.stroke();
 
-  // compute base hue from --accent-h and create MA colors by rotating hue
-  const hue = Number(getComputedStyle(document.documentElement).getPropertyValue('--accent-h')) || 210;
-  const s = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--accent-s')) || 65;
-  const l = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--accent-l')) || 50;
-
-  const maColors = maSets.map((_, idx) => {
-    const h2 = (hue + (idx+1) * 28) % 360;
-    return `hsl(${h2} ${Math.max(30, s-6)}% ${Math.min(64, l+6)}%)`;
-  });
-
-  maSets.forEach((set, idx)=>{
-    const color = maColors[idx % maColors.length];
-    ctx.strokeStyle = color; ctx.lineWidth = 2*r(); ctx.setLineDash([6*r(),4*r()]);
+  // moving averages
+  const colors = ["#ef4444","#10b981","#f59e0b","#8b5cf6","#14b8a6","#dc2626"];
+  maSets.forEach((set, idx) => {
+    ctx.strokeStyle = colors[idx % colors.length];
+    ctx.lineWidth = 2*r(); ctx.setLineDash([6*r(),4*r()]);
     ctx.beginPath();
-    set.forEach((v,i)=>{ if(v==null) return; const xi=x(i), yi=y(v); if(!isFinite(yi)) return; if(i===0) ctx.moveTo(xi,yi); else ctx.lineTo(xi,yi); });
-    ctx.stroke(); ctx.setLineDash([]);
+    set.forEach((v,i)=>{ if(v==null) return; const xi = x(i), yi = y(v); if(!isFinite(yi)) return; if(i===0) ctx.moveTo(xi,yi); else ctx.lineTo(xi,yi); });
+    ctx.stroke();
+    ctx.setLineDash([]);
   });
 
   // legend
   ctx.font = `${13*r()}px sans-serif`; ctx.textBaseline = "middle";
-  ctx.fillStyle = accent; ctx.fillRect(margin.l, margin.t - 18*r(), 12*r(), 12*r());
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
-  ctx.fillText(`raw`, margin.l + 18*r(), margin.t - 12*r());
-  nValues.forEach((n,i)=>{
-    ctx.fillStyle = maColors[i % maColors.length];
-    ctx.fillRect(margin.l + (i+1)*92*r(), margin.t - 18*r(), 12*r(), 12*r());
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
-    ctx.fillText(`n=${n}`, margin.l + (i+1)*92*r() + 18*r(), margin.t - 12*r());
+  nValues.forEach((n, i)=>{
+    const sx = margin.l + i*100*r();
+    const sy = margin.t - 10*r();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillRect(sx, sy, 12*r(), 12*r());
+    ctx.fillStyle = "#111";
+    ctx.fillText(`n=${n}`, sx + 18*r(), sy + 6*r());
   });
 }
 
@@ -487,17 +456,17 @@ function render(values, maSets, nValues, decimals, bad){
   if(bad.length){
     const warn = document.createElement('div');
     warn.className = 'avg-box';
-    warn.style.background = '#fff7f7';
-    warn.style.border = '1px solid #fde2e2';
-    warn.style.color = 'var(--danger)';
+    warn.style.background='#fff7f7';
+    warn.style.border='1px solid #fde2e2';
+    warn.style.color='var(--danger)';
     warn.textContent = 'Ignored invalid entries: ' + bad.join(' ');
     resultsEl.appendChild(warn);
   }
 }
 
-/* compute & render and autosave */
+/* compute and render live */
 function computeAndRender(){
-  saveCurrentStock();
+  saveCurrentStock(); // autosave on each render
   const txt = document.getElementById('dataInput').value || '';
   const {nums, bad} = parseNumbers(txt);
   const nText = document.getElementById('nInput').value || '';
@@ -510,66 +479,50 @@ function computeAndRender(){
   render(nums, maSets, nValues, decimals, bad);
 }
 
-/* events */
+/* wire up live events */
 ['input','change'].forEach(ev=>{
   ['dataInput','nInput','decimalsInput','stockNameInput'].forEach(id=>{
     document.getElementById(id).addEventListener(ev, ()=>{
+      // special: if stock name changed, update stock object and save
       if(id==='stockNameInput' && currentId){
         const newName = document.getElementById('stockNameInput').value.trim();
         const s = stocks.find(x=>x.id===currentId);
         if(s && newName && s.name !== newName){ s.name = newName; saveStocksList(); renderTabs(); }
       }
+      // live render
       computeAndRender();
     });
   });
 });
 
-/* graph toggle */
+/* graph toggle button */
 const toggleGraphBtn = document.getElementById('toggleGraphBtn');
 function updateGraphButton(){ toggleGraphBtn.textContent = graphVisible ? 'Hide Graph' : 'Show Graph'; toggleGraphBtn.classList.toggle('muted', !graphVisible); }
 toggleGraphBtn.addEventListener('click', ()=>{ graphVisible = !graphVisible; updateGraphButton(); computeAndRender(); });
 
-/* help popup */
+/* Add / Help events */
 document.getElementById('helpBtnTop').addEventListener('click', ()=> document.getElementById('helpOverlay').style.display = 'flex');
 document.getElementById('closeHelp').addEventListener('click', ()=> document.getElementById('helpOverlay').style.display = 'none');
 document.getElementById('helpOverlay').addEventListener('click', (e)=> { if(e.target === document.getElementById('helpOverlay')) document.getElementById('helpOverlay').style.display = 'none'; });
 
-/* keyboard shortcut */
-document.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='n'){ e.preventDefault(); addStockBtn.click(); } });
+/* utility for device pixel ratio scaling */
+function r(){ return window.devicePixelRatio || 1; }
 
-/* Initialize stocks & UI */
+/* initialize on load */
 function init(){
   loadStocksList();
   ensureDefaultStock();
   loadStocksList();
+  // set first stock as current if none selected
   currentId = stocks[0] && stocks[0].id;
   renderTabs();
   loadCurrentStock();
   updateGraphButton();
-  // apply saved theme or default 0
-  const savedTheme = Number(localStorage.getItem(THEME_KEY) || 0);
-  applyTheme(savedTheme);
 }
+/* keyboard: add new stock with ctrl+N */
+document.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='n'){ e.preventDefault(); addStockBtn.click(); } });
+
 init();
-
-/* --------------------------
-   Floating Theme FAB logic
-   -------------------------- */
-const themeFab = document.getElementById('themeFab');
-const themeDot = document.getElementById('themeDot');
-let themeIndex = Number(localStorage.getItem(THEME_KEY) || 0);
-
-themeFab.addEventListener('click', ()=>{
-  themeIndex = (themeIndex + 1) % THEMES.length;
-  applyTheme(themeIndex);
-});
-
-/* allow long-press (or shift+click) to go backwards */
-themeFab.addEventListener('contextmenu', (e)=>{ e.preventDefault(); themeIndex = (themeIndex - 1 + THEMES.length) % THEMES.length; applyTheme(themeIndex); });
-
-/* helper parseNumbers used earlier */
-function parseNumbers(text){ const parts=(text||'').trim().split(/[\s,]+/).filter(Boolean); const nums=[], bad=[]; for(const p of parts){ const v=Number(p); if(Number.isFinite(v)) nums.push(v); else bad.push(p); } return {nums,bad}; }
-
 </script>
 </body>
 </html>
