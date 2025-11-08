@@ -71,7 +71,14 @@ canvas { width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; back
   <div class="header">
     <div style="display:flex;flex-direction:column;">
       <div class="tabs-wrap">
-        <div style="margin-right:12px"><h1 class="title">Share Rate Predictor</h1></div>
+        <div style="margin-right:12px">
+  <h1 class="title">
+    <a href="https://hematics43.github.io/Share-Rate-Predictor/" style="text-decoration:none; color:var(--accent);">
+      Share Rate Predictor 1.0
+    </a>
+  </h1>
+</div>
+
         <div class="tabbar" id="tabbar" aria-label="Stock tabs"></div>
       </div>
     </div>
@@ -85,8 +92,8 @@ canvas { width:100%; aspect-ratio:16/9; margin-top:14px; border-radius:8px; back
   <div class="controls">
     <div class="leftCol">
       <div class="field">
-        <label>Stock / Share (active tab name)</label>
-        <input id="stockNameInput" type="text" class="tab-input" placeholder="Enter or rename stock here" />
+        <label>Stock / Share Name</label>
+        <input id="stockNameInput" type="text" class="tab-input" placeholder="Enter or rename stock here"/>
       </div>
       <div class="field">
         <label>Enter past share rates (space or newline separated):</label>
